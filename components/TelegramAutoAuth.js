@@ -1,4 +1,3 @@
-// components/TelegramAutoAuth.js
 import { useEffect, useState } from 'react';
 
 const TelegramAutoAuth = () => {
@@ -6,12 +5,20 @@ const TelegramAutoAuth = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Dynamically load Telegram Web App JS
+    const loadTelegramScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://telegram.org/js/telegram-web-app.js';
+      script.async = true;
+      script.onload = () => initializeTelegramWebApp(); // Initialize once script is loaded
+      document.body.appendChild(script);
+    };
+
     const initializeTelegramWebApp = () => {
       if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.ready();
 
-        // Check initData and initDataUnsafe
         console.log("Telegram WebApp initialized:", tg);
         console.log("Telegram WebApp initData:", tg.initData);
         console.log("Telegram WebApp initDataUnsafe:", tg.initDataUnsafe);
@@ -26,14 +33,14 @@ const TelegramAutoAuth = () => {
       }
     };
 
-    initializeTelegramWebApp();
+    loadTelegramScript();
 
     const retryTimeout = setTimeout(() => {
       if (!user) initializeTelegramWebApp();
     }, 1000);
 
     return () => clearTimeout(retryTimeout);
-  }, []);
+  }, [user]);
 
   return (
     <div>
