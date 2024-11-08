@@ -11,21 +11,23 @@ const TelegramAutoAuth = () => {
         const tg = window.Telegram.WebApp;
         tg.ready();
 
-        const userData = tg.initDataUnsafe?.user;
-        if (userData) {
-          setUser(userData);
+        // Check initData and initDataUnsafe
+        console.log("Telegram WebApp initialized:", tg);
+        console.log("Telegram WebApp initData:", tg.initData);
+        console.log("Telegram WebApp initDataUnsafe:", tg.initDataUnsafe);
+
+        if (tg.initDataUnsafe?.user) {
+          setUser(tg.initDataUnsafe.user); // Set user data if available
         } else {
-          setError("User data not available. Make sure you're launching the mini app within Telegram.");
+          setError("User data not available. Ensure you’re running the mini app within Telegram.");
         }
       } else {
-        setError("Telegram WebApp is not accessible. Make sure this is running inside the Telegram app.");
+        setError("Telegram WebApp is not accessible. Ensure this is running inside the Telegram app.");
       }
     };
 
-    // Try initializing Telegram WebApp immediately
     initializeTelegramWebApp();
 
-    // Retry after a short delay if Telegram WebApp is still inaccessible
     const retryTimeout = setTimeout(() => {
       if (!user) initializeTelegramWebApp();
     }, 1000);
