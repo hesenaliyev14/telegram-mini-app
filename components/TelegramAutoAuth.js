@@ -5,7 +5,7 @@ const TelegramAutoAuth = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Dynamically load Telegram Web App JS
+    // Function to load Telegram Web App script
     const loadTelegramScript = () => {
       const script = document.createElement('script');
       script.src = 'https://telegram.org/js/telegram-web-app.js';
@@ -14,10 +14,11 @@ const TelegramAutoAuth = () => {
       document.body.appendChild(script);
     };
 
+    // Initialize Telegram Web App
     const initializeTelegramWebApp = () => {
       if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
-        tg.ready();
+        tg.ready(); // Make sure the WebApp is ready
 
         console.log("Telegram WebApp initialized:", tg);
         console.log("Telegram WebApp initData:", tg.initData);
@@ -28,18 +29,28 @@ const TelegramAutoAuth = () => {
         } else {
           setError("User data not available. Ensure you’re running the mini app within Telegram.");
         }
+
+        // Ensure Telegram Web App doesn't close after initialization
+        tg.MainButton.setParams({
+          text: "Start"
+        }).show(); // Show the main button (if you have one) to avoid closure
+
       } else {
         setError("Telegram WebApp is not accessible. Ensure this is running inside the Telegram app.");
       }
     };
 
+    // Only load the script once when the component mounts
     loadTelegramScript();
 
+    // Retry mechanism to check if user data is loaded
     const retryTimeout = setTimeout(() => {
       if (!user) initializeTelegramWebApp();
     }, 1000);
 
-    return () => clearTimeout(retryTimeout);
+    return () => {
+      clearTimeout(retryTimeout); // Clean up the retry timeout
+    };
   }, [user]);
 
   return (
