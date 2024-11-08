@@ -3,26 +3,34 @@ import { useEffect, useState } from 'react';
 
 const TelegramAutoAuth = () => {
   const [user, setUser] = useState(null);
-  const [error, setError] = useState(null); // To capture any errors
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      // Initialize Telegram Web App and check for user data
-      const tg = window.Telegram.WebApp;
-      tg.ready();
+    const initializeTelegramWebApp = () => {
+      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
 
-      // Log and check for initDataUnsafe
-      console.log("Telegram WebApp initialized", tg);
-      console.log("Telegram WebApp initDataUnsafe:", tg.initDataUnsafe);
-
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        setUser(tg.initDataUnsafe.user); // Set user data if available
+        const userData = tg.initDataUnsafe?.user;
+        if (userData) {
+          setUser(userData);
+        } else {
+          setError("User data not available. Make sure you're launching the mini app within Telegram.");
+        }
       } else {
-        setError("User data not available. Make sure you're launching the mini app within Telegram.");
+        setError("Telegram WebApp is not accessible. Make sure this is running inside the Telegram app.");
       }
-    } else {
-      setError("Telegram WebApp is not accessible. Make sure this is running inside the Telegram app.");
-    }
+    };
+
+    // Try initializing Telegram WebApp immediately
+    initializeTelegramWebApp();
+
+    // Retry after a short delay if Telegram WebApp is still inaccessible
+    const retryTimeout = setTimeout(() => {
+      if (!user) initializeTelegramWebApp();
+    }, 1000);
+
+    return () => clearTimeout(retryTimeout);
   }, []);
 
   return (
