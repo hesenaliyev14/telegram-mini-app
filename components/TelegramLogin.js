@@ -1,4 +1,3 @@
-// components/TelegramLogin.js
 import { useEffect } from 'react';
 
 const TelegramLogin = ({ onAuth }) => {
