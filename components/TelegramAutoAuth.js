@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react';
 const TelegramAutoAuth = () => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
+  const [initialized, setInitialized] = useState(false); // Track if initialized
 
   useEffect(() => {
-    // Function to load Telegram Web App script
+    // Load Telegram Web App script once
     const loadTelegramScript = () => {
       const script = document.createElement('script');
       script.src = 'https://telegram.org/js/telegram-web-app.js';
@@ -14,44 +15,42 @@ const TelegramAutoAuth = () => {
       document.body.appendChild(script);
     };
 
-    // Initialize Telegram Web App
     const initializeTelegramWebApp = () => {
       if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
-        tg.ready(); // Make sure the WebApp is ready
+        
+        if (!initialized) {
+          tg.ready(); // Make sure WebApp is ready
+          setInitialized(true); // Mark as initialized to avoid repeated initialization
 
-        console.log("Telegram WebApp initialized:", tg);
-        console.log("Telegram WebApp initData:", tg.initData);
-        console.log("Telegram WebApp initDataUnsafe:", tg.initDataUnsafe);
+          console.log("Telegram WebApp initialized:", tg);
+          console.log("Telegram WebApp initData:", tg.initData);
+          console.log("Telegram WebApp initDataUnsafe:", tg.initDataUnsafe);
 
-        if (tg.initDataUnsafe?.user) {
-          setUser(tg.initDataUnsafe.user); // Set user data if available
-        } else {
-          setError("User data not available. Ensure you’re running the mini app within Telegram.");
+          if (tg.initDataUnsafe?.user) {
+            setUser(tg.initDataUnsafe.user); // Set user data if available
+          } else {
+            setError("User data not available. Ensure you’re running the mini app within Telegram.");
+          }
         }
 
-        // Ensure Telegram Web App doesn't close after initialization
+        // Handle main button visibility (avoid closing)
         tg.MainButton.setParams({
           text: "Start"
-        }).show(); // Show the main button (if you have one) to avoid closure
+        }).show();
 
       } else {
         setError("Telegram WebApp is not accessible. Ensure this is running inside the Telegram app.");
       }
     };
 
-    // Only load the script once when the component mounts
-    loadTelegramScript();
-
-    // Retry mechanism to check if user data is loaded
-    const retryTimeout = setTimeout(() => {
-      if (!user) initializeTelegramWebApp();
-    }, 1000);
+    loadTelegramScript(); // Load script once on mount
 
     return () => {
-      clearTimeout(retryTimeout); // Clean up the retry timeout
+      // Clean up on unmount
+      setInitialized(false);
     };
-  }, [user]);
+  }, [initialized]); // Dependency on 'initialized' to avoid infinite initialization
 
   return (
     <div>
