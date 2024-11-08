@@ -50,7 +50,11 @@ const TelegramAutoAuth = () => {
       {error ? (
         <p style={{ color: "red" }}>{error}</p>
       ) : user ? (
-        <h2>Hello, {user.first_name}!</h2>
+        <>
+            <h2>Hello, {user.first_name}  {user.last}!</h2>
+            <p>id: {user.id}</p>
+            <pre>{user.photo_url}</pre>
+        </>
       ) : (
         <p>Loading...</p>
       )}
